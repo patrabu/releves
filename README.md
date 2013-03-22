@@ -24,4 +24,3 @@ The client-side uses [jquery](http://jquery.com) and [jquery mobile](http://jque
 
 Quickstart
 ----------
-
