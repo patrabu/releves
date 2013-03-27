@@ -1,20 +1,20 @@
 # encoding: utf-8
 
-""" 
+"""
     routes.py
     ~~~~~~~~~
-    
+
     This file serves the urls for the web-app pages.
-    
+
     :copyright: (c) 2013 by Patrick Rabu.
-    :license: GPL-3, see LICENSE for more details.    
+    :license: GPL-3, see LICENSE for more details.
 """
 
 import datetime
 import time
 import sqlite3
 from flask import Flask, render_template, request, jsonify, _app_ctx_stack
-  
+
 # Configuration
 DATABASE = "releves.sqlite"
 DEBUG = True
@@ -63,7 +63,7 @@ def getLastReleves():
     cur = db.execute('''
     select cesiLog.dtCesi 'dt', cesiLog.sensor1 's1', cesiLog.sensor2 's2',
     cesiLog.sensor3 's3', cesiLog.appoint 'app', elecLog.elec 'elec'
-    from cesiLog 
+    from cesiLog
     left outer join elecLog on cesiLog.dtCesi = elecLog.dtElec
     order by dt desc
     limit 10
@@ -72,7 +72,7 @@ def getLastReleves():
     rows = cur.fetchall()
     for row in rows:
         dt1 = datetime.datetime.fromtimestamp(row[0]).strftime(DT_FMT)
-        data = dict(id=int(row[0]), dt=dt1, 
+        data = dict(id=int(row[0]), dt=dt1,
             s1=row[1], s2=row[2], s3=row[3], app=row[4], elec=row[5])
         #app.logger.debug(data)
         listLog.append(data)
@@ -84,16 +84,16 @@ def getLastReleves():
 @app.route('/saveReleve', methods=['POST'])
 def save():
     app.logger.debug("save() - Begin.")
-    
+
     app.logger.debug("save() - Content-type=%s ", request.headers['Content-Type'])
     app.logger.debug("save() - Form:")
     app.logger.debug(request.form)
     app.logger.debug("save() - form.id=%s ", request.form["id"])
     app.logger.debug("save() - form.date=%s", request.form["dt"])
-    
+
     errors = []
     db = get_db()
-    
+
     id = int(request.form["id"]) if request.form["id"] != None else 0
     dtReleve = None
     dt = request.form["dt"] if request.form["dt"] != None and request.form["dt"] != "" else None
@@ -103,31 +103,31 @@ def save():
     appoint = request.form["app"] if request.form["app"] != None else 0
     elec = int(request.form["elec"]) if request.form["elec"] != None else None
     app.logger.debug("save() - Form: id={} d={} s1={} s2={} s3={} Appoint={} Elec={}".format(id, dt, s1, s2, s3, appoint, elec))
-    
-    if dt == None or dt == "": 
+
+    if dt == None or dt == "":
         errors.append(dict(field="date", message="The date is mandatory"))
     else:
         try:
             dtReleve = datetime.datetime.strptime(dt, DT_FMT)
             if dtReleve > datetime.datetime.now():
                 errors.append(dict(field="date", message="Date is in future."))
-        except valueError: 
+        except valueError:
             errors.append(dict(field="date", message="The date is incorrect"))
-        
+
     if s2 > s3:
         errors.append(dict(field="sensor3", message="Sensor3 cannot be greater than sensor2"))
-        
+
     if elec != None:
         # Search the previous row to retrieve the electricity index
         tsReleve = int(time.mktime(dtReleve.timetuple()))
         db = get_db()
-        cur = db.execute('select max(dtElec) from elecLog where dtElec < :dtElec', 
+        cur = db.execute('select max(dtElec) from elecLog where dtElec < :dtElec',
             {"dtElec": tsReleve})
         row = cur.fetchone()
         if row :
             # Get the electricity index
             app.logger.debug("save() - Last row = %s", row[0])
-            cur = db.execute('select elec from elecLog where dtElec = :dtElec', 
+            cur = db.execute('select elec from elecLog where dtElec = :dtElec',
                 {"dtElec": row[0]})
             row2 = cur.fetchone()
             if row2 :
@@ -135,18 +135,18 @@ def save():
                 if elec < row2[0]:
                     app.logger.debug("save() - error elec: %d < %d", elec, row2[0])
                     errors.append(dict(field="elec", message="Electricity index is less than previous one {}.".format(row2[0])))
-    
+
     if len(errors) == 0:
         cur = db.cursor()
         app.logger.debug("save() - Id=%s", id)
         if id <= 0:
             try:
                 app.logger.debug("save() - insert cesiLog")
-                cur.execute('insert into cesiLog values (?, ?, ?, ?, ?)', 
+                cur.execute('insert into cesiLog values (?, ?, ?, ?, ?)',
                     (tsReleve, s1, s2, s3, appoint))
                 if elec != None:
                     app.logger.debug("save() - insert elecLog")
-                    cur.execute('insert into elecLog values (?, ?)', 
+                    cur.execute('insert into elecLog values (?, ?)',
                         (tsReleve, elec))
             except sqlite3.Error as e:
                 app.logger.error("save() - Insert error=", e.args[0])
@@ -154,14 +154,14 @@ def save():
             try:
                 if s1 != None or s2 != None or s3 != None:
                     app.logger.debug("save() - update cesiLog")
-                    cur.execute('''update cesiLog 
-                        set dtCesi=?, sensor1=?, sensor2=?, sensor3=?, appoint=? 
-                        where dtCesi = ?''', 
+                    cur.execute('''update cesiLog
+                        set dtCesi=?, sensor1=?, sensor2=?, sensor3=?, appoint=?
+                        where dtCesi = ?''',
                         (tsReleve, s1, s2, s3, appoint, id))
                 if elec != None:
                     app.logger.debug("save() - update elecLog")
-                    cur.execute('''update elecLog 
-                        set dtElec=?, elec=? where dtElec = ?''', 
+                    cur.execute('''update elecLog
+                        set dtElec=?, elec=? where dtElec = ?''',
                         (tsReleve, elec, id))
             except sqlite3.Error as e:
                 app.logger.error("save() - Update error=", e.args[0])
@@ -172,9 +172,9 @@ def save():
     else:
         for err in errors:
             app.logger.debug("save() - err={%s: %s}", err['field'], err['message'])
-        
+
         return jsonify(content={"returnCode": "KO", "errors": errors})
-  
+
 @app.route('/SpecRunner')
 def specRunner():
     return render_template('SpecRunner.html')
@@ -186,7 +186,6 @@ def index():
 @app.route('/about')
 def about():
     return render_template('about.html')
- 
+
 if __name__ == '__main__':
-  app.run(debug=True)
-  
+  app.run(host='192.168.0.100', debug=True)
