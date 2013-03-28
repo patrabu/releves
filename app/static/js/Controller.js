@@ -504,7 +504,7 @@ Releves.controller = (function ($, dataContext, document) {
 	
 	var loadRelevesListFromServer = function() {
         $.ajax({
-            url: '/getLastReleves', 
+            url: '/get30DaysReleves', 
             dataType: 'json',
             async: false,
             timeout: 2000,

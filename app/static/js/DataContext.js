@@ -59,7 +59,7 @@ Releves.dataContext = (function ($) {
 		var tmpReleve = null;
         var timestamp;
 		for (var i = 0; i < relevesList.length; i++) {
-            console.log('getSensorsForChart() - Date[' + i + ']=' + relevesList[i].date);
+            //console.log('getSensorsForChart() - Date[' + i + ']=' + relevesList[i].date);
             if (relevesList[i].sensor1 == "") {
                 continue;
             }
@@ -67,20 +67,19 @@ Releves.dataContext = (function ($) {
             timestamp = relevesList[i].id * 1000;
             sensor1[0] = timestamp;
             sensor1[1] = relevesList[i].sensor1;
-            console.log('getSensorsForChart() - Sensor1[' + i + ']=' + sensor1[0] + ', ' + sensor1[1]);
+            //console.log('getSensorsForChart() - Sensor1[' + i + ']=' + sensor1[0] + ', ' + sensor1[1]);
             s1.push(sensor1);
             var sensor2 = [];
             sensor2[0] = timestamp;
             sensor2[1] = relevesList[i].sensor2;
-            console.log('getSensorsForChart() - Sensor2[' + i + ']=' + sensor2[0] + ', ' + sensor2[1]);
+            //console.log('getSensorsForChart() - Sensor2[' + i + ']=' + sensor2[0] + ', ' + sensor2[1]);
             s2.push(sensor2);
             var sensor3 = [];
             sensor3[0] = timestamp;
             sensor3[1] = relevesList[i].sensor3;
-            console.log('getSensorsForChart() - Sensor3[' + i + ']=' + sensor3[0] + ', ' + sensor3[1]);
+            //console.log('getSensorsForChart() - Sensor3[' + i + ']=' + sensor3[0] + ', ' + sensor3[1]);
             s3.push(sensor3);
 		}
-        console.log('getSensorsForChart() - S1=' + s1.length + " S2=" + s2.length + " S3=" + s3.length);
         for (var i = 0; i < s1.length; i++) {
             console.log("getSensorsForChart() - dt[" + i + "]=" + s1[i][0] + " - s1=" + s1[i][1] + " - s2=" + s2[i][1] + " - s3=" + s3[i][1]);
         }
