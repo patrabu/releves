@@ -140,7 +140,7 @@ def save():
     s3 = float(request.form["s3"]) if request.form["s3"] != None and request.form["s3"] != "" else None
     appoint = request.form["app"] if request.form["app"] != None else 0
     elec = int(request.form["elec"]) if request.form["elec"] != None else None
-    app.logger.debug("save() - Form: id={} d={} s1={} s2={} s3={} Appoint={} Elec={}".format(id, dt, s1, s2, s3, appoint, elec))
+    app.logger.debug("save() - Form: id={} dt={} s1={} s2={} s3={} Appoint={} Elec={}".format(id, dt, s1, s2, s3, appoint, elec))
     
     if dt == None or dt == "": 
         errors.append(dict(field="date", message="The date is mandatory"))
