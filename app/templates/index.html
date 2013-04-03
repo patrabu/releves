@@ -2,12 +2,10 @@
 <html manifest="{{ url_for('static', filename='releves.appcache') }}">
 <head>
 	<title>RELEVES</title>
-    <author>Patrick Rabu</author>
+	<meta charset="utf-8" />
 	<meta name="author" content="Patrick Rabu" />
     <meta name="Copyright" content="Copyright Patrick Rabu 2013. All Rights Reserved." />
-    <description>Tool to record temperatures of a solar heating system.</description>
     <meta name="description" content="Tool to record temperatures of a solar heating system." />
-	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 	<meta name="apple-mobile-web-app-capable" content="yes" />
 	<meta name="apple-mobile-web-app-status-bar-style" content="black" />
@@ -20,6 +18,7 @@
 	<link rel="apple-touch-icon-precomposed" href="{{ url_for('static', filename='img/apple-touch-icon-precomposed.png') }}" />
  -->
 	<script src="{{ url_for('static', filename='lib/jqm/jquery-1.9.1.min.js') }}"></script>
+	<script src="{{ url_for('static', filename='lib/jquery.flot.js') }}"></script>
 	<script src="{{ url_for('static', filename='lib/jstorage/jstorage.min.js') }}"></script>
 
 	<script src="{{ url_for('static', filename='js/DataContext.js') }}"></script>
@@ -31,6 +30,7 @@
 <body>
 	<div data-role="page" id="releves-list-page">
 		<div data-role="header">
+			<a href="#releves-chart-page" data-role="button" data-mini="true">Charts</a>
 			<h1>Relev&eacute;s</h1>
 			<a href="#releves-editor-page" class="ui-btn-right" data-role="button" data-icon="plus" data-iconpos="right" data-mini="true">Nouveau</a>
 		</div>
@@ -98,6 +98,16 @@
 		</div>
 		<div id="releve-errors" data-role="content" data-theme="e" ></div>
 	</div> <!-- End of releve-invalid-dialog -->
+
+	<div data-role="page" id="releves-chart-page">
+		<div data-role="header">
+			<a href="#releves-list-page" id="releve-op-reset" data-icon="back" data-rel="back">Cancel</a>
+			<h1>Relev&eacute;s chart</h1>
+		</div>
+		<div data-role="content" id="releves-chart-content">
+            <div id="placeholder" style="width:350px;height:300px;"></div>
+		</div>
+	</div> <!-- End of releves-list-page -->
 
 </body>
 </html>

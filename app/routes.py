@@ -10,7 +10,7 @@
     :license: GPL-3, see LICENSE for more details.
 """
 
-import datetime
+from datetime import datetime, timedelta
 import time
 import sqlite3
 from flask import Flask, render_template, request, jsonify, _app_ctx_stack
@@ -71,8 +71,8 @@ def getLastReleves():
     listLog = []
     rows = cur.fetchall()
     for row in rows:
-        dt1 = datetime.datetime.fromtimestamp(row[0]).strftime(DT_FMT)
-        data = dict(id=int(row[0]), dt=dt1,
+        dt1 = datetime.fromtimestamp(row[0]).strftime(DT_FMT)
+        data = dict(id=int(row[0]), dt=dt1, 
             s1=row[1], s2=row[2], s3=row[3], app=row[4], elec=row[5])
         #app.logger.debug(data)
         listLog.append(data)
@@ -81,16 +81,53 @@ def getLastReleves():
     return jsonify(dict(RelevesList=listLog))
 
 
+@app.route("/get30DaysReleves")
+def get30DaysReleves():
+    """
+    Retrieve the last 30 releves from now of from a date param
+    """
+    app.logger.debug("get30DaysReleves() - Begin.")
+    lastDay = datetime.today()
+    
+    argLastDay = request.args.get("dt", None, type=int)
+    if argLastDay != None:
+        try:
+            lastDay = datetime.fromtimestamp(argLastDay)
+        except ValueError, e:
+            app.logger.error("Invalid request value for get30DaysReleves() : %s", str(argLastDay))
+            lastDay = datetime.today()
+    
+    firstDay = lastDay - timedelta(days=30)
+    app.logger.debug("Search releves between %s (%d) and %s (%d).", 
+    firstDay.isoformat(), time.mktime(firstDay.timetuple()), 
+    lastDay.isoformat(), time.mktime(lastDay.timetuple()));
+    db = get_db()
+    cur = db.execute('''
+    select cesiLog.dtCesi 'dt', cesiLog.sensor1 's1', cesiLog.sensor2 's2',
+    cesiLog.sensor3 's3', cesiLog.appoint 'app', elecLog.elec 'elec'
+    from cesiLog 
+    left outer join elecLog on cesiLog.dtCesi = elecLog.dtElec
+    where cesiLog.dtCesi > ? and cesiLog.dtCesi <= ?
+    order by dt desc
+    ''', (time.mktime(firstDay.timetuple()), time.mktime(lastDay.timetuple())))
+    listLog = []
+    rows = cur.fetchall()
+    for row in rows:
+        dt1 = datetime.fromtimestamp(row[0]).strftime(DT_FMT)
+        data = dict(id=int(row[0]), dt=dt1, 
+            s1=row[1], s2=row[2], s3=row[3], app=row[4], elec=row[5])
+        #app.logger.debug(data)
+        listLog.append(data)
+    app.logger.debug(listLog)
+    app.logger.debug("get30DaysReleves() - End.")
+    return jsonify(dict(RelevesList=listLog))
+
 @app.route('/saveReleve', methods=['POST'])
 def save():
+    """ 
+    Save e releve into the database. 
+    """
     app.logger.debug("save() - Begin.")
-
-    app.logger.debug("save() - Content-type=%s ", request.headers['Content-Type'])
-    app.logger.debug("save() - Form:")
-    app.logger.debug(request.form)
-    app.logger.debug("save() - form.id=%s ", request.form["id"])
-    app.logger.debug("save() - form.date=%s", request.form["dt"])
-
     errors = []
     db = get_db()
 
@@ -108,7 +145,7 @@ def save():
         errors.append(dict(field="date", message="The date is mandatory"))
     else:
         try:
-            dtReleve = datetime.datetime.strptime(dt, DT_FMT)
+            dtReleve = datetime.strptime(dt, DT_FMT)
             if dtReleve > datetime.datetime.now():
                 errors.append(dict(field="date", message="Date is in future."))
         except valueError:
@@ -188,4 +225,4 @@ def about():
     return render_template('about.html')
 
 if __name__ == '__main__':
-  app.run(host='192.168.0.100', debug=True)
+  app.run('192.168.0.100', debug=True)

@@ -8,7 +8,7 @@
     :license: GPL-3, see LICENSE for more details.    
 */
 
-var Releves = Releves || {}
+var Releves = Releves || {};
 
 Releves.dataContext = (function ($) {
     "use strict";
@@ -47,6 +47,46 @@ Releves.dataContext = (function ($) {
 			}
 		}
 		return releve;
+	};
+	
+	var getSensorsForChart = function() {
+        var sensors = {};
+        var s1 = [];
+        var s2 = [];
+        var s3 = [];
+        
+		var releve = null;
+		var tmpReleve = null;
+        var timestamp;
+		for (var i = 0; i < relevesList.length; i++) {
+            //console.log('getSensorsForChart() - Date[' + i + ']=' + relevesList[i].date);
+            if (relevesList[i].sensor1 == "") {
+                continue;
+            }
+            var sensor1 = [];
+            timestamp = relevesList[i].id * 1000;
+            sensor1[0] = timestamp;
+            sensor1[1] = relevesList[i].sensor1;
+            //console.log('getSensorsForChart() - Sensor1[' + i + ']=' + sensor1[0] + ', ' + sensor1[1]);
+            s1.push(sensor1);
+            var sensor2 = [];
+            sensor2[0] = timestamp;
+            sensor2[1] = relevesList[i].sensor2;
+            //console.log('getSensorsForChart() - Sensor2[' + i + ']=' + sensor2[0] + ', ' + sensor2[1]);
+            s2.push(sensor2);
+            var sensor3 = [];
+            sensor3[0] = timestamp;
+            sensor3[1] = relevesList[i].sensor3;
+            //console.log('getSensorsForChart() - Sensor3[' + i + ']=' + sensor3[0] + ', ' + sensor3[1]);
+            s3.push(sensor3);
+		}
+        for (var i = 0; i < s1.length; i++) {
+            console.log("getSensorsForChart() - dt[" + i + "]=" + s1[i][0] + " - s1=" + s1[i][1] + " - s2=" + s2[i][1] + " - s3=" + s3[i][1]);
+        }
+        sensors.s1 = s1;
+        sensors.s2 = s2;
+        sensors.s3 = s3;
+        return sensors;
 	};
     
 	var createEmptyReleve = function() {
@@ -137,6 +177,7 @@ Releves.dataContext = (function ($) {
 		createEmptyReleve: createEmptyReleve,
 		getRelevesList: getRelevesList,
 		getReleveById: getReleveById,
+		getSensorsForChart: getSensorsForChart,
 		saveReleve: saveReleve,
 		init: init
 	}

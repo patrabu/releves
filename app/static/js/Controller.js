@@ -19,6 +19,7 @@ Releves.controller = (function ($, dataContext, document) {
 	// Pages identifiers
 	var relevesListPageId = "releves-list-page";
 	var relevesEditorPageId = "releves-editor-page";
+	var relevesChartPageId = "releves-chart-page";
 	
 	// Objects selectors
 	var relevesListSelector = "#releves-list-content";
@@ -101,6 +102,9 @@ Releves.controller = (function ($, dataContext, document) {
 				if (fromPageId == relevesListPageId) {
 					renderSelectedReleve(data);
 				}
+				break;
+			case relevesChartPageId: 
+				renderChart();
 				break;
 		}
 	}
@@ -235,6 +239,26 @@ Releves.controller = (function ($, dataContext, document) {
 			// Focus on the first sensor field 
 			$(relevesEditorSensor1Sel).focus();
 		}
+	};
+	
+    // Put the releve data in the form
+	var renderChart = function(data) {
+        var data = dataContext.getSensorsForChart();
+        for (var i = 0; i < data.length; i++) {
+            console.log("data[" + i + "]" + data[i]);
+            for (var j = 0; j < data[i].length; j++) {
+                console.log("data[" + i + "," + j + "]" + data[i][j]);
+            }
+        }
+        $.plot($("#placeholder"),
+           [ { data: data.s1, label: "Sensor 1 (&deg;C)" },
+             { data: data.s2, label: "Sensor 2 (&deg;C)" }, 
+             { data: data.s3, label: "Sensor 3 (&deg;C)" }],
+           { 
+               xaxes: [ { mode: 'time' } ],
+               legend: { position: 'nw' }
+           });
+        
 	};
 	
 	var checkRelevesForm = function() {
@@ -480,7 +504,7 @@ Releves.controller = (function ($, dataContext, document) {
 	
 	var loadRelevesListFromServer = function() {
         $.ajax({
-            url: '/getLastReleves', 
+            url: '/get30DaysReleves', 
             dataType: 'json',
             async: false,
             timeout: 2000,
