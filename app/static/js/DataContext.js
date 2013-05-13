@@ -100,8 +100,8 @@ Releves.dataContext = (function ($) {
         var h = now.getHours();
         var mn = now.getMinutes();
         var s = now.getSeconds();
-        var ymd = y + '-' + (mo < 9 ? '0' + mo : mo) + '-' + (d < 9 ? '0' + d : d);
-        var hms = (h < 9 ? '0' + h : h) + ':' + (mn < 9 ? '0' + mn : mn) + ':' + (s < 9 ? '0' + s : s);
+        var ymd = y + '-' + (mo < 10 ? '0' + mo : mo) + '-' + (d < 10 ? '0' + d : d);
+        var hms = (h < 10 ? '0' + h : h) + ':' + (mn < 10 ? '0' + mn : mn) + ':' + (s < 10 ? '0' + s : s);
         var dt = ymd + ' ' + hms;
         
 		var releveModel = new Releves.ReleveModel({
