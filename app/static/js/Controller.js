@@ -45,12 +45,9 @@ Releves.controller = (function ($, dataContext, document) {
     var currentReleve = null;
 
     var init = function () {
-        var serverOnLine = isOnLine();
-        if (serverOnLine) {
-            synchronizeReleves();
-            loadRelevesListFromServer();
-        }
-        dataContext.init(relevesListStorageKey, serverOnLine);
+        synchronizeReleves();
+        loadRelevesListFromServer();
+        dataContext.init(relevesListStorageKey);
 
         var d = $(document);
         d.on("pagechange", onPageChange);
@@ -430,7 +427,7 @@ Releves.controller = (function ($, dataContext, document) {
             view.append($(noReleveMsg));
         } else {
             var relevesCount = relevesList.length;
-            var releve, li, link, h1, p1, p2;
+            var releve, li, link, h1, img, p1, p2;
             var ul = $("<ul id=\"releves-list\" data-role=\"listview\"></ul>");
             view.append(ul);
             for (var i = 0; i < relevesCount; i++) {
@@ -439,7 +436,9 @@ Releves.controller = (function ($, dataContext, document) {
                 h1 = $("<h1></h1>").text(releve.date);
                 if (releve.dirty == 1) {
                     console.log("releve id=" + releve.id + " date=" + releve.date + " dirty");
-                    h1.attr('data-icon', 'alert');
+                    //h1.attr('data-icon', 'alert');
+                    img = $("<img >").attr({"src": "static/img/warning.png", "alt": "local data", "width": "24px", "height": "24px" });
+                    h1.append(img);
                 }
                 link.append(h1);
                 if (releve.sensor1 != null && releve.sensor1 != "") {
@@ -462,15 +461,21 @@ Releves.controller = (function ($, dataContext, document) {
         }
     };
 
+    /* ========================================== *
+     * Save local releves to the server.          *
+     * ========================================== */
     var synchronizeReleves = function() {
+        console.log("synchronizeReleves - Begin.");
         var relevesList = $.jStorage.get(relevesListStorageKey);
         var hasErrors = false;
 
         if (relevesList) {
             $.each(relevesList, function(i, item) {
+                // Item need to be saved.
                 if (item.dirty == 1) {
-                    // Save Releve on the server
+                    console.log("Save dirty item - id=" +item.id + " - dt=" +item.date + " - s1=" + item.sensor1 + " - s2=" + item.sensor2 + " - s3=" + item.sensor3 + " - elec=" + item.elec + " - app=" + item.appoint);
                     saveReleveToServer(item);
+                    console.log("Dirty item - id=" +item.id + " - dirty=" +item.dirty);
                 }
             });
             if (hasErrors) {
@@ -479,8 +484,12 @@ Releves.controller = (function ($, dataContext, document) {
                 $.mobile.changePage(releveInvalidDialogSel, defaultDialogTrsn);
             }
         }
+        console.log("synchronizeReleves - End.");
     };
 
+    /* ========================================== *
+     * Check if we can connect to the server.     *
+     * ========================================== */
     var isOnLine = function() {
         if (!navigator.onLine) {
             return false;
@@ -502,7 +511,12 @@ Releves.controller = (function ($, dataContext, document) {
         return ret;
     };
 
+
+    /* =============================================== *
+     * Load the last 30 days releves from the server.  *
+     * =============================================== */
     var loadRelevesListFromServer = function() {
+        console.log("loadRelevesListFromServer() - Begin.");
         $.ajax({
             url: '/get30DaysReleves',
             dataType: 'json',
@@ -528,9 +542,9 @@ Releves.controller = (function ($, dataContext, document) {
             },
             error: function (data) {
                 console.log("loadRelevesListFromServer() - error().data=" + data);
-                alert('getLastReleves error: ' + data);
             }
         });
+        console.log("loadRelevesListFromServer() - End.");
     };
 
 
