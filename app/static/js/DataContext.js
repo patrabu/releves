@@ -1,11 +1,11 @@
 /*
     DataContext.js
     ~~~~~~~~~~~~~~
-    
+
     Function to manage the list of Releves.
-    
+
     :copyright: (c) 2013 by Patrick Rabu.
-    :license: GPL-3, see LICENSE for more details.    
+    :license: GPL-3, see LICENSE for more details.
 */
 
 var Releves = Releves || {};
@@ -15,18 +15,18 @@ Releves.dataContext = (function ($) {
 
 	var relevesList = [];
 	var relevesListStorageKey;
-	
+
 	var init = function(storageKey, onLine) {
 		console.log("Releves.dataContext.init - Begin - storageKey=" + storageKey);
 		relevesListStorageKey = storageKey;
         loadRelevesListFromLocalStorage();
 		console.log("Releves.dataContext.init - End");
 	}
-	
+
 	var getRelevesList = function() {
 		return relevesList;
 	};
-	
+
 	var getReleveById = function(id) {
 		var releve = null;
 		var tmpReleve = null;
@@ -34,7 +34,7 @@ Releves.dataContext = (function ($) {
 			tmpReleve = relevesList[i];
 			if (tmpReleve.id == id) {
 				releve = new Releves.ReleveModel({
-				    id: tmpReleve.id, 
+				    id: tmpReleve.id,
         			date: tmpReleve.date,
         			sensor1: tmpReleve.sensor1,
         			sensor2: tmpReleve.sensor2,
@@ -48,13 +48,13 @@ Releves.dataContext = (function ($) {
 		}
 		return releve;
 	};
-	
+
 	var getSensorsForChart = function() {
         var sensors = {};
         var s1 = [];
         var s2 = [];
         var s3 = [];
-        
+
 		var releve = null;
 		var tmpReleve = null;
         var timestamp;
@@ -88,22 +88,22 @@ Releves.dataContext = (function ($) {
         sensors.s3 = s3;
         return sensors;
 	};
-    
+
 	var createEmptyReleve = function() {
-	
-        // Format a date like this 'YYYY-mm-DD HH:MM:SS' 
+
+        // Format a date like this 'YYYY-mm-DD HH:MM:SS'
         var now = new Date();
-        var newId = now.getTime() * -1; //  
+        var newId = now.getTime() * -1; //
         var y = now.getFullYear();
         var mo = now.getMonth() + 1;
         var d = now.getDate();
         var h = now.getHours();
         var mn = now.getMinutes();
         var s = now.getSeconds();
-        var ymd = y + '-' + (mo < 9 ? '0' + mo : mo) + '-' + (d < 9 ? '0' + d : d);
-        var hms = (h < 9 ? '0' + h : h) + ':' + (mn < 9 ? '0' + mn : mn) + ':' + (s < 9 ? '0' + s : s);
+        var ymd = y + '-' + (mo < 10 ? '0' + mo : mo) + '-' + (d < 10 ? '0' + d : d);
+        var hms = (h < 10 ? '0' + h : h) + ':' + (mn < 10 ? '0' + mn : mn) + ':' + (s < 10 ? '0' + s : s);
         var dt = ymd + ' ' + hms;
-        
+
 		var releveModel = new Releves.ReleveModel({
 			id: 0,
 			date: dt,
@@ -116,12 +116,12 @@ Releves.dataContext = (function ($) {
 		});
 		return releveModel;
 	};
-	
+
 	var saveReleve = function(releveModel) {
 		var found = false;
 		var i;
 		console.log("Releves.DataContext.saveReleve - releveModel.id=" + releveModel.id);
-		
+
 		// Not a new releve or new releve save online
 		if (releveModel.id != 0) {
 			console.log("Releves.DataContext.saveReleve - update");
@@ -148,13 +148,13 @@ Releves.dataContext = (function ($) {
 		if (!found) {
 			relevesList.splice(0, 0, releveModel);
 		}
-		
+
 		// Save the list to localStorage
 		saveRelevesListToLocalStorage();
-		
+
 		return releveModel.id;
 	};
-	
+
 	var loadRelevesListFromLocalStorage = function() {
 		console.log("Releves.dataContext.loadRelevesListFromLocalStorage - Begin");
 		var localReleves = $.jStorage.get(relevesListStorageKey);
@@ -166,7 +166,7 @@ Releves.dataContext = (function ($) {
 		}
 		console.log("Releves.dataContext.loadRelevesListFromLocalStorage - relevesList=" + relevesList);
 	};
-	
+
 	var saveRelevesListToLocalStorage = function() {
 		console.log("Releves.dataContext.saveRelevesListToLocalStorage - Begin");
 		$.jStorage.set(relevesListStorageKey, relevesList);
