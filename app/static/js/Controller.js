@@ -45,8 +45,10 @@ Releves.controller = (function ($, dataContext, document) {
     var currentReleve = null;
 
     var init = function () {
-        synchronizeReleves();
-        loadRelevesListFromServer();
+        if (navigator.onLine) {
+            synchronizeReleves();
+            loadRelevesListFromServer();
+        }
         dataContext.init(relevesListStorageKey);
 
         var d = $(document);
@@ -483,6 +485,7 @@ Releves.controller = (function ($, dataContext, document) {
                 $(releveInvalidDialogSel + " #releve-errors").append("<p>" + pbSynchro + "</p>");
                 $.mobile.changePage(releveInvalidDialogSel, defaultDialogTrsn);
             }
+            $.jStorage.set(relevesListStorageKey, relevesList);
         }
         console.log("synchronizeReleves - End.");
     };

@@ -163,7 +163,7 @@ def save():
                         set dtElec=?, elec=? where dtElec = ?''',
                         (tsReleve, elec, id))
         except sqlite3.Error as e:
-            app.logger.error("save() - DB error=", e.args[0])
+            app.logger.error("save() - DB error=", e)
         cur.close
         db.commit()
         #app.logger.debug("Id=%s", id)
