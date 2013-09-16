@@ -45,7 +45,7 @@ Releves.controller = (function ($, dataContext, document) {
     var currentReleve = null;
 
     var init = function () {
-        if (navigator.onLine) {
+        if (isOnLine()) {
             synchronizeReleves();
             loadRelevesListFromServer();
         }
