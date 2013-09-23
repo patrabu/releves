@@ -174,7 +174,7 @@ Releves.dataContext = (function ($) {
         console.log("Releves.dataContext.saveRelevesListToLocalStorage - relevesList=" + relevesList);
     };
 
-    var compareReleves(r1, r2) {
+    var compareReleves = function(r1, r2) {
         return Math.abs(r2.id) - Math.abs(r1.id);
     };
     
