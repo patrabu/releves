@@ -122,6 +122,8 @@ Releves.controller = (function ($, dataContext, document) {
 
     var onSaveReleveBtnTapped = function (event, data) {
         var fieldSel = "";
+        event.stopPropagation();
+        event.stopImmediatePropagation();
         // Remove previous error classes and messages
         $(releveInvalidDialogSel + " #releve-errors").empty();
         for (var key in currentReleve) {
