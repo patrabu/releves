@@ -1,23 +1,18 @@
 CACHE MANIFEST
-# Version 0.3a
+# Version 0.4c
 
-/index
-/static/lib/jqm/jquery-2.0.3.js
-/static/lib/jqm/jquery.min.map
-/static/lib/jqm/jquery.mobile-1.4.0.min.js
-/static/lib/jstorage/jstorage.min.js
-/static/lib/jquery.flot.js
-/static/lib/jqm/images/ajax-loader.gif
-/static/lib/jqm/images/icons-18-white.png
-/static/lib/jqm/images/icons-36-white.png
-/static/lib/jqm/images/icons-18-black.png
-/static/lib/jqm/images/icons-36-black.png
+/
+/static/js/jquery.min.js
+/static/js/jquery.mobile-1.4.4.min.js
+/static/js/simpleStorage.js
+/static/js/jquery.flot.js
+/static/css/images/ajax-loader.gif
 /static/js/DataContext.js
 /static/js/ReleveModel.js
 /static/js/Controller.js
-/static/lib/jqm/jquery.mobile-1.4.0.min.css
+/static/css/jquery.mobile-1.4.4.min.css
 /static/img/warning.png
 /static/css/main.css
 
 NETWORK:
-*
+/api

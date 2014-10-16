@@ -6,7 +6,7 @@
 
     This file serves the urls for the web-app pages.
 
-    :copyright: (c) 2013 by Patrick Rabu.
+    :copyright: 2013 Patrick Rabu <patrick@rabu.fr>.
     :license: GPL-3, see LICENSE for more details.
 """
 
@@ -39,14 +39,14 @@ def close_db_connection(exception):
     if hasattr(top, 'sqlite_db'):
       top.sqlite_db.close()
 
-@app.route("/getTS")
+@app.route("/api/getTS")
 def getTS():
     """
     Method to check if the server is onLine
     """
     return jsonify(content="OK")
 
-@app.route("/get30DaysReleves")
+@app.route("/api/get30DaysReleves")
 def get30DaysReleves():
     """
     Retrieve the last 30 releves from now of from a date param
@@ -87,7 +87,7 @@ def get30DaysReleves():
     app.logger.debug("get30DaysReleves() - End.")
     return jsonify(dict(RelevesList=listLog))
 
-@app.route('/saveReleve', methods=['POST'])
+@app.route('/api/saveReleve', methods=['POST'])
 def save():
     """
     Save e releve into the database.
@@ -174,14 +174,15 @@ def save():
 
         return jsonify(content={"returnCode": "KO", "errors": errors})
 
-@app.route('/SpecRunner')
-def specRunner():
-    return render_template('SpecRunner.html')
-
-@app.route('/index')
+@app.route('/')
+@app.route('/index.html')
 def index():
     return render_template('index.html')
 
-@app.route('/about')
+@app.route('/about.html')
 def about():
     return render_template('about.html')
+
+@app.route('/SpecRunner')
+def specRunner():
+    return render_template('SpecRunner.html')

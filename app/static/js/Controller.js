@@ -4,7 +4,7 @@
 
     Controller of the releves application.
 
-    :copyright: (c) 2013 by Patrick Rabu.
+    :copyright: 2013 Patrick Rabu <patrick@rabu.fr>.
     :license: GPL-3, see LICENSE for more details.
 */
 
@@ -63,7 +63,7 @@ Releves.controller = (function ($, dataContext, document) {
         dataString += "&s1=" + releve.sensor1 + "&s2=" + releve.sensor2 + "&s3=" + releve.sensor3 ;
         dataString += "&elec=" + releve.elec + "&app=" + releve.appoint;
         $.ajax({
-            url: 'saveReleve',
+            url: 'api/saveReleve',
             type: 'POST',
             data: dataString,
             async: false,
@@ -242,15 +242,9 @@ Releves.controller = (function ($, dataContext, document) {
         }
     };
 
-    // Put the releve data in the form
+    // Render the releve data in a chart
     var renderChart = function(data) {
         var data = dataContext.getSensorsForChart();
-        for (var i = 0; i < data.length; i++) {
-            console.log("data[" + i + "]" + data[i]);
-            for (var j = 0; j < data[i].length; j++) {
-                console.log("data[" + i + "," + j + "]" + data[i][j]);
-            }
-        }
         $.plot($("#placeholder"),
            [ { data: data.s1, label: "Sensor 1 (&deg;C)" },
              { data: data.s2, label: "Sensor 2 (&deg;C)" },
@@ -440,7 +434,6 @@ Releves.controller = (function ($, dataContext, document) {
                 h1 = $("<h1></h1>").text(releve.date);
                 if (releve.dirty == 1) {
                     console.log("releve id=" + releve.id + " date=" + releve.date + " dirty");
-                    //h1.attr('data-icon', 'alert');
                     img = $("<img >").attr({"src": "static/img/warning.png", "alt": "local data", "width": "24px", "height": "24px" });
                     h1.append(img);
                 }
@@ -470,7 +463,7 @@ Releves.controller = (function ($, dataContext, document) {
      * ========================================== */
     var synchronizeReleves = function() {
         console.log("synchronizeReleves - Begin.");
-        var relevesList = $.jStorage.get(relevesListStorageKey);
+        var relevesList = simpleStorage.get(relevesListStorageKey);
         var hasErrors = false;
 
         if (relevesList) {
@@ -487,7 +480,7 @@ Releves.controller = (function ($, dataContext, document) {
                 $(releveInvalidDialogSel + " #releve-errors").append("<p>" + pbSynchro + "</p>");
                 $.mobile.changePage(releveInvalidDialogSel, defaultDialogTrsn);
             }
-            $.jStorage.set(relevesListStorageKey, relevesList);
+            simpleStorage.set(relevesListStorageKey, relevesList);
         }
         console.log("synchronizeReleves - End.");
     };
@@ -502,7 +495,7 @@ Releves.controller = (function ($, dataContext, document) {
 
         var ret = false;
         var req = $.ajax({
-            url: "getTS",
+            url: "api/getTS",
             async: false,
             timeout: 2000});
 
@@ -523,7 +516,7 @@ Releves.controller = (function ($, dataContext, document) {
     var loadRelevesListFromServer = function() {
         console.log("loadRelevesListFromServer() - Begin.");
         $.ajax({
-            url: '/get30DaysReleves',
+            url: '/api/get30DaysReleves',
             dataType: 'json',
             async: false,
             timeout: 2000,
@@ -543,7 +536,7 @@ Releves.controller = (function ($, dataContext, document) {
                     });
                     serverReleves[i] = releve;
                 }
-                $.jStorage.set(relevesListStorageKey, serverReleves);
+                simpleStorage.set(relevesListStorageKey, serverReleves);
             },
             error: function (data) {
                 console.log("loadRelevesListFromServer() - error().data=" + data);
@@ -562,6 +555,5 @@ Releves.controller = (function ($, dataContext, document) {
 
 
 $(document).bind("mobileinit", function() {
-    console.log("mobileinit");
     Releves.controller.init();
 });

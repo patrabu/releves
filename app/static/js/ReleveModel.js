@@ -1,11 +1,11 @@
 /*
     ReleveModel.js
     ~~~~~~~~~~~~~~
-    
+
     Model object of a releve.
-    
-    :copyright: (c) 2013 by Patrick Rabu.
-    :license: GPL-3, see LICENSE for more details.    
+
+    :copyright: 2013 Patrick Rabu <patrick@rabu.fr>.
+    :license: GPL-3, see LICENSE for more details.
 */
 
 Releves.ReleveModel = function(config) {
@@ -37,15 +37,15 @@ Releves.ReleveModel = function(config) {
 
 Releves.ReleveModel.prototype.isValid = function() {
 	"use strict";
-	
+
 	var errors = [];
     var error = {};
-	
+
 	if (this.date == null || this.date == "") {
         error.field = "date";
         error.message = "La date est obligatoire.";
         console.log("Releves.ReleveModel.isValid - error[" + error.field + "]=" + error.message);
-        errors.push(error); 
+        errors.push(error);
 	} else {
 		var dtNow = new Date();
 		var dt = this.date.split(" "); // Split the date and time parts
@@ -56,7 +56,7 @@ Releves.ReleveModel.prototype.isValid = function() {
             error.field = "date";
             error.message = "La date ne peut pas &ecirc;tre dans le futur.";
             console.log("Releves.ReleveModel.isValid - error[" + error.field + "]=" + error.message);
-			errors.push(error); 
+			errors.push(error);
 		}
 	}
 
@@ -78,37 +78,37 @@ Releves.ReleveModel.prototype.isValid = function() {
 		s3Present = true;
 	}
 
-	if (( s1Present && !s2Present && !s3Present) || 
-		( s1Present && !s2Present &&  s3Present) || 
-		( s1Present &&  s2Present && !s3Present) || 
-		(!s1Present && !s2Present &&  s3Present) || 
-		(!s1Present &&  s2Present && !s3Present) || 
+	if (( s1Present && !s2Present && !s3Present) ||
+		( s1Present && !s2Present &&  s3Present) ||
+		( s1Present &&  s2Present && !s3Present) ||
+		(!s1Present && !s2Present &&  s3Present) ||
+		(!s1Present &&  s2Present && !s3Present) ||
 		(!s1Present &&  s2Present &&  s3Present)) {
-        errors.push({field: "sensor1", message: "Aucune sonde ou toutes les sondes doivent être renseignées."}); 
+        errors.push({field: "sensor1", message: "Aucune sonde ou toutes les sondes doivent être renseignées."});
         console.log("Releves.ReleveModel.isValid - error[" + error.field + "]=" + error.message);
 	} else {
 		if (s2f > s3f) {
             error.field = "sensor3";
             error.message = "La temp&eacute;rature de la sonde 3 ne peut pas être supérieure à celle de la sonde 2.";
-            errors.push(error); 
+            errors.push(error);
             console.log("Releves.ReleveModel.isValid - error[" + error.field + "]=" + error.message);
 		}
 	}
 	console.log("Releves.ReleveModel.isValid - S1=" + s1f + " S2=" + s2f + " S3=" + s3f);
-	
+
 	if (this.elec != null && this.elec != "") {
 		var elec = parseInt(this.elec);
 		if (elec <= 0) {
             error = {field: "elec", message: "L'index d'électricité doit être supérieur à 0."};
             console.log("Releves.ReleveModel.isValid - error[" + error.field + "]=" + error.message);
-            errors.push(error); 
+            errors.push(error);
 		}
 	} else {
 		if (!s1Present && !s2Present && ! s3Present) {
             error.field = "sensor1";
             error.message = "Les sondes ou l'électricité doivent être renseignées.";
             console.log("Releves.ReleveModel.isValid - error[" + error.field + "]=" + error.message);
-            errors.push(error); 
+            errors.push(error);
 		}
 	}
 

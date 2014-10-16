@@ -6,7 +6,7 @@
 
     Init file for the app package.
 
-    :copyright: (c) 2013 by Patrick Rabu.
+    :copyright: 2013 Patrick Rabu <patrick@rabu.fr>.
     :license: GPL-3, see LICENSE for more details.
 """
 

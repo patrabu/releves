@@ -4,7 +4,7 @@
 
     Function to manage the list of Releves.
 
-    :copyright: (c) 2013 by Patrick Rabu.
+    :copyright: 2013 Patrick Rabu <patrick@rabu.fr>.
     :license: GPL-3, see LICENSE for more details.
 */
 
@@ -59,7 +59,6 @@ Releves.dataContext = (function ($) {
         var tmpReleve = null;
         var timestamp;
         for (var i = 0; i < relevesList.length; i++) {
-            //console.log('getSensorsForChart() - Date[' + i + ']=' + relevesList[i].date);
             if (relevesList[i].sensor1 == "") {
                 continue;
             }
@@ -67,21 +66,15 @@ Releves.dataContext = (function ($) {
             timestamp = relevesList[i].id * 1000;
             sensor1[0] = timestamp;
             sensor1[1] = relevesList[i].sensor1;
-            //console.log('getSensorsForChart() - Sensor1[' + i + ']=' + sensor1[0] + ', ' + sensor1[1]);
             s1.push(sensor1);
             var sensor2 = [];
             sensor2[0] = timestamp;
             sensor2[1] = relevesList[i].sensor2;
-            //console.log('getSensorsForChart() - Sensor2[' + i + ']=' + sensor2[0] + ', ' + sensor2[1]);
             s2.push(sensor2);
             var sensor3 = [];
             sensor3[0] = timestamp;
             sensor3[1] = relevesList[i].sensor3;
-            //console.log('getSensorsForChart() - Sensor3[' + i + ']=' + sensor3[0] + ', ' + sensor3[1]);
             s3.push(sensor3);
-        }
-        for (var i = 0; i < s1.length; i++) {
-            console.log("getSensorsForChart() - dt[" + i + "]=" + s1[i][0] + " - s1=" + s1[i][1] + " - s2=" + s2[i][1] + " - s3=" + s3[i][1]);
         }
         sensors.s1 = s1;
         sensors.s2 = s2;
@@ -93,7 +86,6 @@ Releves.dataContext = (function ($) {
 
         // Format a date like this 'YYYY-mm-DD HH:MM:SS'
         var now = new Date();
-        var newId = now.getTime() * -1; //
         var y = now.getFullYear();
         var mo = now.getMonth() + 1;
         var d = now.getDate();
@@ -157,9 +149,9 @@ Releves.dataContext = (function ($) {
 
     var loadRelevesListFromLocalStorage = function() {
         console.log("Releves.dataContext.loadRelevesListFromLocalStorage - Begin");
-        var localReleves = $.jStorage.get(relevesListStorageKey);
+        var localReleves = simpleStorage.get(relevesListStorageKey);
         console.log("Releves.dataContext.loadRelevesListFromLocalStorage - localReleves size=" + localReleves.length);
-        if (localReleves !== null) {
+        if (localReleves != null) {
             relevesList = localReleves;
         } else {
             relevesList = [];
@@ -170,14 +162,14 @@ Releves.dataContext = (function ($) {
     var saveRelevesListToLocalStorage = function() {
         console.log("Releves.dataContext.saveRelevesListToLocalStorage - Begin");
         relevesList.sort(compareReleves);
-        $.jStorage.set(relevesListStorageKey, relevesList);
+        simpleStorage.set(relevesListStorageKey, relevesList);
         console.log("Releves.dataContext.saveRelevesListToLocalStorage - relevesList=" + relevesList);
     };
 
     var compareReleves = function(r1, r2) {
         return Math.abs(r2.id) - Math.abs(r1.id);
     };
-    
+
     return {
         createEmptyReleve: createEmptyReleve,
         getRelevesList: getRelevesList,

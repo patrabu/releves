@@ -1,3 +1,15 @@
+# encoding: utf-8
+
+"""
+    config.py
+    ~~~~~~
+
+    Configuration elements.
+
+    :copyright: 2013 Patrick Rabu <patrick@rabu.fr>.
+    :license: GPL-3, see LICENSE for more details.
+"""
+
 import os
 basedir = os.path.abspath(os.path.dirname(__file__))
 
