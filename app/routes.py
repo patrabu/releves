@@ -58,7 +58,7 @@ def get30DaysReleves():
     if argLastDay != None:
         try:
             lastDay = datetime.fromtimestamp(argLastDay)
-        except ValueError, e:
+        except ValueError:
             app.logger.error("Invalid request value for get30DaysReleves() : %s", str(argLastDay))
             lastDay = datetime.today()
 
