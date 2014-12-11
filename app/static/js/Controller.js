@@ -25,7 +25,7 @@ Releves.controller = (function ($, dataContext, document) {
     var relevesListSelector = "#releves-list-content";
 
     // Form objects selectors
-    var relevesEditorFormSel = "#releves-editor-form"
+    var relevesEditorFormSel = "#releves-editor-form";
     var relevesEditorIdSel = "#releves-editor-id";
     var relevesEditorDateSel = "#releves-editor-date";
     var relevesEditorSensor1Sel = "#releves-editor-sensor1";
@@ -44,46 +44,110 @@ Releves.controller = (function ($, dataContext, document) {
     // Reference to the current item
     var currentReleve = null;
 
-    var init = function () {
-        if (isOnLine()) {
-            synchronizeReleves();
-            loadRelevesListFromServer();
-        }
-        dataContext.init(relevesListStorageKey);
 
-        var d = $(document);
-        d.on("pagechange", onPageChange);
-        d.on("pagebeforechange", onPageBeforeChange);
-        d.on("tap", relevesEditorSaveBtnSel, onSaveReleveBtnTapped);
+    /* ========================================== *
+     * Check if we can connect to the server.     *
+     * ========================================== */
+    var isOnLine = function () {
+        if (!navigator.onLine) {
+            return false;
+        }
+
+        var ret = false;
+        var req = $.ajax({
+            url: "api/getTS",
+            async: false,
+            timeout: 2000
+        });
+
+        req.done(function () {
+            ret = true;
+        });
+
+        req.fail(function () {
+            ret = false;
+        });
+        return ret;
     };
 
-    var saveReleveToServer = function(releve) {
+    
+    var saveReleveToServer = function (releve) {
         // Send the data using post
         var dataString = "id=" + releve.id + "&dt=" + escape(releve.date);
-        dataString += "&s1=" + releve.sensor1 + "&s2=" + releve.sensor2 + "&s3=" + releve.sensor3 ;
+        dataString += "&s1=" + releve.sensor1 + "&s2=" + releve.sensor2 + "&s3=" + releve.sensor3;
         dataString += "&elec=" + releve.elec + "&app=" + releve.appoint;
+        var errs, hasErrors = false;
         $.ajax({
             url: 'api/saveReleve',
             type: 'POST',
             data: dataString,
             async: false,
             timeout: 2000,
-            success: function( data ) {
-                if (data.content.returnCode == "OK") {
+            success: function (data) {
+                if (data.content.returnCode === "OK") {
                     releve.id = data.content.id;
                     releve.dirty = 0;
                 } else {
-                    errors = data.content.errors;
+                    errs = data.content.errors;
                     hasErrors = true;
                     console.log("save - errs=" + errs);
                 }
             },
-            error: function( data ) {
+            error: function (data) {
                 alert("Error saving releve");
             }
         });
     };
 
+    
+    var resetCurrentReleve = function() {
+        currentReleve = null;
+    };
+
+    
+    var renderRelevesList = function() {
+        var relevesList = dataContext.getRelevesList();
+        var view = $(relevesListSelector);
+        view.empty();
+
+        if (relevesList.length === 0) {
+            view.append($(noReleveMsg));
+        } else {
+            var relevesCount = relevesList.length;
+            var releve, li, link, h1, img, p1, p2;
+            var ul = $("<ul id=\"releves-list\" data-role=\"listview\"></ul>");
+            view.append(ul);
+            for (var i = 0; i < relevesCount; i++) {
+                releve = relevesList[i];
+                link = $("<a></a>").attr({"href": "#releves-editor-page?id=" + releve.id, "data-url": "#releves-editor-page?id=" + releve.id});
+                h1 = $("<h1></h1>").text(releve.date);
+                if (releve.dirty == 1) {
+                    console.log("releve id=" + releve.id + " date=" + releve.date + " dirty");
+                    img = $("<img >").attr({"src": "static/img/warning.png", "alt": "local data", "width": "24px", "height": "24px" });
+                    h1.append(img);
+                }
+                link.append(h1);
+                if (releve.sensor1 != null && releve.sensor1 != "") {
+                    p1 = $("<p></p>");
+                    p1.append("S1 = <strong>" + releve.sensor1 + "</strong> &deg;C - ");
+                    p1.append("S2 = <strong>" + releve.sensor2 + "</strong> &deg;C - ");
+                    p1.append("S3 = <strong>" + releve.sensor3 + "</strong> &deg;C");
+                    link.append(p1);
+                }
+                p2 = $("<p></p>");
+                p2.append("&Eacute;lec. = <strong>" + releve.elec + "</strong> kW/h - ");
+                p2.append("Appoint : <strong>" + ((releve.appoint===1) ? "0n" : "Off") + "</strong>");
+                link.append(p2);
+                li = $("<li></li>").append(link);
+                ul.append(li);
+
+            }
+            // Apply JQueryMobile enhancements to the list
+            $(relevesListSelector).trigger("create");
+        }
+    };
+
+    
     var onPageChange = function (event, data) {
         var toPageId = data.toPage.attr("id");
         var fromPageId = null;
@@ -92,22 +156,23 @@ Releves.controller = (function ($, dataContext, document) {
             fromPageId = data.options.fromPage.attr("id");
         }
 
-        switch(toPageId) {
-            case relevesListPageId:
-                resetCurrentReleve();
-                renderRelevesList();
-                break;
-            case relevesEditorPageId:
-                if (fromPageId == relevesListPageId) {
-                    renderSelectedReleve(data);
-                }
-                break;
-            case relevesChartPageId:
-                renderChart();
-                break;
+        switch (toPageId) {
+        case relevesListPageId:
+            resetCurrentReleve();
+            renderRelevesList();
+            break;
+        case relevesEditorPageId:
+            if (fromPageId == relevesListPageId) {
+                renderSelectedReleve(data);
+            }
+            break;
+        case relevesChartPageId:
+            renderChart();
+            break;
         }
     }
 
+    
     var onPageBeforeChange = function (event, data) {
 
         if (typeof data.toPage === "string") {
@@ -120,6 +185,7 @@ Releves.controller = (function ($, dataContext, document) {
         }
     };
 
+    
     var onSaveReleveBtnTapped = function (event, data) {
         var fieldSel = "";
         event.stopPropagation();
@@ -181,15 +247,13 @@ Releves.controller = (function ($, dataContext, document) {
         }
     };
 
-    var resetCurrentReleve = function() {
-        currentReleve = null;
-    };
-
+    
     var returnToRelevesListPage = function() {
         $.mobile.changePage("#" + relevesListPageId,
             {transition: "slide", reverse: true});
     };
 
+    
     // Transform a query string to an object :
     // "?a=5&b=hello+world"  -> { a: 5, b: "hello world"}
     var queryStringToObj = function(queryString) {
@@ -208,6 +272,7 @@ Releves.controller = (function ($, dataContext, document) {
         return queryStringObj;
     };
 
+    
     // Put the releve data in the form
     var renderSelectedReleve = function(data) {
         var u = $.mobile.path.parseUrl(data.options.fromPage.context.URL);
@@ -242,6 +307,7 @@ Releves.controller = (function ($, dataContext, document) {
         }
     };
 
+    
     // Render the releve data in a chart
     var renderChart = function(data) {
         var data = dataContext.getSensorsForChart();
@@ -256,6 +322,7 @@ Releves.controller = (function ($, dataContext, document) {
 
     };
 
+    
     var checkRelevesForm = function() {
         var errors = [];
         var required = false, pattern, patternOk = true, re;
@@ -416,48 +483,7 @@ Releves.controller = (function ($, dataContext, document) {
         return errors;
     };
 
-    var renderRelevesList = function() {
-        var relevesList = dataContext.getRelevesList();
-        var view = $(relevesListSelector);
-        view.empty();
-
-        if (relevesList.length === 0) {
-            view.append($(noReleveMsg));
-        } else {
-            var relevesCount = relevesList.length;
-            var releve, li, link, h1, img, p1, p2;
-            var ul = $("<ul id=\"releves-list\" data-role=\"listview\"></ul>");
-            view.append(ul);
-            for (var i = 0; i < relevesCount; i++) {
-                releve = relevesList[i];
-                link = $("<a></a>").attr({"href": "#releves-editor-page?id=" + releve.id, "data-url": "#releves-editor-page?id=" + releve.id});
-                h1 = $("<h1></h1>").text(releve.date);
-                if (releve.dirty == 1) {
-                    console.log("releve id=" + releve.id + " date=" + releve.date + " dirty");
-                    img = $("<img >").attr({"src": "static/img/warning.png", "alt": "local data", "width": "24px", "height": "24px" });
-                    h1.append(img);
-                }
-                link.append(h1);
-                if (releve.sensor1 != null && releve.sensor1 != "") {
-                    p1 = $("<p></p>");
-                    p1.append("S1 = <strong>" + releve.sensor1 + "</strong> &deg;C - ");
-                    p1.append("S2 = <strong>" + releve.sensor2 + "</strong> &deg;C - ");
-                    p1.append("S3 = <strong>" + releve.sensor3 + "</strong> &deg;C");
-                    link.append(p1);
-                }
-                p2 = $("<p></p>");
-                p2.append("&Eacute;lec. = <strong>" + releve.elec + "</strong> kW/h - ");
-                p2.append("Appoint : <strong>" + ((releve.appoint===1) ? "0n" : "Off") + "</strong>");
-                link.append(p2);
-                li = $("<li></li>").append(link);
-                ul.append(li);
-
-            }
-            // Apply JQueryMobile enhancements to the list
-            $(relevesListSelector).trigger("create");
-        }
-    };
-
+    
     /* ========================================== *
      * Save local releves to the server.          *
      * ========================================== */
@@ -485,30 +511,6 @@ Releves.controller = (function ($, dataContext, document) {
         console.log("synchronizeReleves - End.");
     };
 
-    /* ========================================== *
-     * Check if we can connect to the server.     *
-     * ========================================== */
-    var isOnLine = function() {
-        if (!navigator.onLine) {
-            return false;
-        }
-
-        var ret = false;
-        var req = $.ajax({
-            url: "api/getTS",
-            async: false,
-            timeout: 2000});
-
-        req.done(function() {
-            ret = true;
-        });
-
-        req.fail(function() {
-            ret = false;
-        });
-        return ret;
-    };
-
 
     /* =============================================== *
      * Load the last 30 days releves from the server.  *
@@ -516,7 +518,7 @@ Releves.controller = (function ($, dataContext, document) {
     var loadRelevesListFromServer = function() {
         console.log("loadRelevesListFromServer() - Begin.");
         $.ajax({
-            url: '/api/get30DaysReleves',
+            url: 'api/get30DaysReleves',
             dataType: 'json',
             async: false,
             timeout: 2000,
@@ -543,6 +545,20 @@ Releves.controller = (function ($, dataContext, document) {
             }
         });
         console.log("loadRelevesListFromServer() - End.");
+    };
+
+    
+    var init = function () {
+        if (isOnLine()) {
+            synchronizeReleves();
+            loadRelevesListFromServer();
+        }
+        dataContext.init(relevesListStorageKey);
+
+        var d = $(document);
+        d.on("pagechange", onPageChange);
+        d.on("pagebeforechange", onPageBeforeChange);
+        d.on("tap", relevesEditorSaveBtnSel, onSaveReleveBtnTapped);
     };
 
 
