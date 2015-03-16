@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# Version 0.4c
+# Version 0.4h
 
 /
 /static/js/jquery.min.js
@@ -13,6 +13,7 @@ CACHE MANIFEST
 /static/css/jquery.mobile-1.4.4.min.css
 /static/img/warning.png
 /static/css/main.css
+/static/favicon.ico
 
 NETWORK:
 /api

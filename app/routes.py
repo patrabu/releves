@@ -6,14 +6,14 @@
 
     This file serves the urls for the web-app pages.
 
-    :copyright: 2013 Patrick Rabu <patrick@rabu.fr>.
+    :copyright: 2013, 2014 Patrick Rabu <patrick@rabu.fr>.
     :license: GPL-3, see LICENSE for more details.
 """
 
 from datetime import datetime, timedelta
 import time
 import sqlite3
-from flask import render_template, request, jsonify, _app_ctx_stack
+from flask import render_template, request, jsonify, _app_ctx_stack, make_response
 from app import app
 
 def get_db():
@@ -23,7 +23,6 @@ def get_db():
     """
     top = _app_ctx_stack.top
     if not hasattr(top, 'sqlite_db'):
-      #app.logger.debug("DATABASE_URI=%s", app.config['DATABASE_URI'])
       sqlite_db = sqlite3.connect(app.config['DATABASE_URI'])
       sqlite_db.row_factory = sqlite3.Row
       top.sqlite_db = sqlite_db
@@ -175,13 +174,25 @@ def save():
         return jsonify(content={"returnCode": "KO", "errors": errors})
 
 @app.route('/')
+@app.route('/index')
 @app.route('/index.html')
 def index():
+    app.logger.debug("index().")
     return render_template('index.html')
 
 @app.route('/about.html')
 def about():
+    app.logger.debug("about().")
     return render_template('about.html')
+
+@app.route('/manifest')
+def manifest():
+    app.logger.debug("manifest().")
+    appcache = render_template('releves.manifest')
+    app.logger.debug(appcache)
+    res = make_response(appcache, 200)
+    res.headers["Content-Type"] = "text/cache-manifest"
+    return res
 
 @app.route('/SpecRunner')
 def specRunner():

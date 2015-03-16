@@ -1,0 +1,18 @@
+CACHE MANIFEST
+# Version 0.1b
+
+{{ url_for('index') }}
+{{ url_for('static', filename='js/jquery.min.js') }}
+{{ url_for('static', filename='js/jquery.mobile-1.4.4.min.js') }}
+{{ url_for('static', filename='js/simpleStorage.js') }}
+{{ url_for('static', filename='js/jquery.flot.js') }}
+{{ url_for('static', filename='js/DataContext.js') }}
+{{ url_for('static', filename='js/ReleveModel.js') }}
+{{ url_for('static', filename='js/Controller.js') }}
+{{ url_for('static', filename='css/jquery.mobile-1.4.4.min.css') }}
+{{ url_for('static', filename='css/main.css') }}
+{{ url_for('static', filename='css/images/ajax-loader.gif') }}
+{{ url_for('static', filename='img/warning.png') }}
+
+NETWORK:
+*

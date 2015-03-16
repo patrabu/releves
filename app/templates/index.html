@@ -21,7 +21,7 @@
 -->
 
 <!DOCTYPE html>
-<html manifest="{{ url_for('static', filename='releves.appcache') }}">
+<html manifest="{{ url_for('manifest') }}">
 <head>
     <title>RELEVES</title>
     <meta charset="utf-8" />
@@ -48,6 +48,7 @@
     <script src="{{ url_for('static', filename='js/ReleveModel.js') }}"></script>
 
     <script src="{{ url_for('static', filename='js/jquery.mobile-1.4.4.min.js') }}"></script>
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" />
 </head>
 <body>
     <div data-role="page" id="releves-list-page">

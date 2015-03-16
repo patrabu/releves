@@ -21,3 +21,14 @@ DATABASE_URI = os.path.join(basedir, "releves.sqlite")
 
 # Pattern for the datetime
 DT_FMT = "%Y-%m-%d %H:%M:%S"
+
+# Mail server settings
+MAIL_SERVER = 'localhost'
+MAIL_PORT = 25
+MAIL_USE_SSL = False
+MAIL_USE_TLS = False
+MAIL_USERNAME = None
+MAIL_PASSWORD = None
+
+# administrator list
+ADMINS = ['webmaster@rabu.fr']
