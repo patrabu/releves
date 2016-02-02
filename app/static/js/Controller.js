@@ -8,10 +8,10 @@
     :license: GPL-3, see LICENSE for more details.
 */
 
-/*jslint browser: true, devel: true, vars: true */
+/*jslint browser: true, devel: true, debug: true, plusplus: true, vars: true */
 
 Releves.controller = (function ($, dataContext, document) {
-    
+
     "use strict";
 
     // Storage key
@@ -28,8 +28,7 @@ Releves.controller = (function ($, dataContext, document) {
         // Objects selectors
         relevesListSelector = "#releves-list-content",
 
-    // Form objects selectors
-        relevesEditorFormSel = "#releves-editor-form",
+        // Form objects selectors
         relevesEditorIdSel = "#releves-editor-id",
         relevesEditorDateSel = "#releves-editor-date",
         relevesEditorSensor1Sel = "#releves-editor-sensor1",
@@ -77,9 +76,30 @@ Releves.controller = (function ($, dataContext, document) {
     };
 
 
+    // Transform a query string to an object :
+    // "?a=5&b=hello+world"  -> { a: 5, b: "hello world"}
+    var queryStringToObj = function (queryString) {
+        var queryStringObj = {};
+        var e;
+        var a = /\+/g; // Replace + symbol with a space
+        var r = /([^&;=]+)=?([^&;]*)/g;
+        var d = function (s) {
+            return decodeURIComponent(s.replace(a, " "));
+        };
+
+        e = r.exec(queryString);
+        while (e) {
+            queryStringObj[d(e[1])] = d(e[2]);
+            e = r.exec(queryString);
+        }
+
+        return queryStringObj;
+    };
+
+
     var saveReleveToServer = function (releve) {
         // Send the data using post
-        var dataString = "id=" + releve.id + "&dt=" + escape(releve.date);
+        var dataString = "id=" + releve.id + "&dt=" + encodeURIComponent(releve.date);
         dataString += "&s1=" + releve.sensor1 + "&s2=" + releve.sensor2 + "&s3=" + releve.sensor3;
         dataString += "&elec=" + releve.elec + "&app=" + releve.appoint;
         var errs;
@@ -144,21 +164,20 @@ Releves.controller = (function ($, dataContext, document) {
             async: false,
             timeout: 2000,
             success: function (data) {
-                var releves = data.RelevesList;
                 var serverReleves = [];
-                for (var i = 0; i < releves.length; i++) {
+                $.each(data.RelevesList, function (i, item) {
                     var releve = new Releves.ReleveModel({
-                        id: releves[i].id,
-                        date: releves[i].dt,
-                        sensor1: releves[i].s1,
-                        sensor2: releves[i].s2,
-                        sensor3: releves[i].s3,
-                        elec: releves[i].elec,
-                        appoint: releves[i].app,
+                        id: item.id,
+                        date: item.dt,
+                        sensor1: item.s1,
+                        sensor2: item.s2,
+                        sensor3: item.s3,
+                        elec: item.elec,
+                        appoint: item.app,
                         dirty: 0
                     });
-                    serverReleves[i] = releve;
-                }
+                    serverReleves.push(releve);
+                });
                 simpleStorage.set(relevesListStorageKey, serverReleves);
             },
             error: function (data) {
@@ -182,18 +201,16 @@ Releves.controller = (function ($, dataContext, document) {
         if (relevesList.length === 0) {
             view.append($(noReleveMsg));
         } else {
-            var relevesCount = relevesList.length;
-            var releve, li, link, h1, img, p1, p2;
+            var li, link, h1, img, p1, p2;
             var ul = $("<ul id=\"releves-list\" data-role=\"listview\"></ul>");
             view.append(ul);
-            for (var i = 0; i < relevesCount; i++) {
-                releve = relevesList[i];
+            $.each(relevesList, function (i, releve) {
                 link = $("<a></a>").attr({
                     "href": "#releves-editor-page?id=" + releve.id,
                     "data-url": "#releves-editor-page?id=" + releve.id
                 });
                 h1 = $("<h1></h1>").text(releve.date);
-                if (releve.dirty == 1) {
+                if (releve.dirty === 1) {
                     console.log("releve id=" + releve.id + " date=" + releve.date + " dirty");
                     img = $("<img >").attr({
                         "src": "static/img/warning.png",
@@ -204,7 +221,7 @@ Releves.controller = (function ($, dataContext, document) {
                     h1.append(img);
                 }
                 link.append(h1);
-                if (releve.sensor1 != null && releve.sensor1 != "") {
+                if (releve.sensor1 !== null && releve.sensor1 !== "") {
                     p1 = $("<p></p>");
                     p1.append("S1 = <strong>" + releve.sensor1 + "</strong> &deg;C - ");
                     p1.append("S2 = <strong>" + releve.sensor2 + "</strong> &deg;C - ");
@@ -217,8 +234,8 @@ Releves.controller = (function ($, dataContext, document) {
                 link.append(p2);
                 li = $("<li></li>").append(link);
                 ul.append(li);
+            });
 
-            }
             // Apply JQueryMobile enhancements to the list
             $(relevesListSelector).trigger("create");
         }
@@ -233,15 +250,15 @@ Releves.controller = (function ($, dataContext, document) {
         if (u.hash.search(re) !== -1) {
             var queryStringObj = queryStringToObj(data.options.queryString);
 
-            var paramId = queryStringObj["id"];
+            var paramId = queryStringObj.id;
             var releveId = 0;
-            if (paramId != null) {
-                releveId = parseInt(paramId);
+            if (paramId !== null) {
+                releveId = parseInt(paramId, 10);
             }
             if (releveId !== 0) {
                 currentReleve = dataContext.getReleveById(releveId);
             }
-            if (currentReleve == null) {
+            if (currentReleve === null) {
                 currentReleve = dataContext.createEmptyReleve();
             }
 
@@ -262,8 +279,9 @@ Releves.controller = (function ($, dataContext, document) {
 
     // Render the releve data in a chart
     var renderChart = function (data) {
-        var data = dataContext.getSensorsForChart();
-        $.plot($("#placeholder"), [{
+        data = dataContext.getSensorsForChart();
+        $.plot($("#placeholder"), [
+            {
                 data: data.s1,
                 label: "Sensor 1 (&deg;C)"
             },
@@ -277,7 +295,7 @@ Releves.controller = (function ($, dataContext, document) {
             }], {
             xaxes: [{
                 mode: 'time'
-            }],
+                }],
             legend: {
                 position: 'nw'
             }
@@ -294,238 +312,93 @@ Releves.controller = (function ($, dataContext, document) {
     };
 
 
-    // Transform a query string to an object :
-    // "?a=5&b=hello+world"  -> { a: 5, b: "hello world"}
-    var queryStringToObj = function (queryString) {
-        var queryStringObj = {};
-        var e;
-        var a = /\+/g; // Replace + symbol with a space
-        var r = /([^&;=]+)=?([^&;]*)/g;
-        var d = function (s) {
-            return decodeURIComponent(s.replace(a, " "));
-        };
+    var checkFormElement = function (formElement) {
+        var errMsg;
+        var required = false,
+            pattern,
+            patternOk = true,
+            re;
+        var elementId, value, valMin, valMax;
 
-        e = r.exec(queryString);
-        while (e) {
-            queryStringObj[d(e[1])] = d(e[2]);
-            e = r.exec(queryString);
+        elementId = formElement.prop("id");
+        value = formElement.val().trim();
+        required = formElement.prop("required");
+        pattern = formElement.prop("pattern");
+        patternOk = true;
+        valMin = formElement.prop("min");
+        valMax = formElement.prop("max");
+        if (required && (value === null || value === "")) {
+            errMsg = {
+                field: elementId,
+                message: "The 1st sensor temperature is mandatory."
+            };
+        } else {
+            if (pattern !== null && pattern !== "undefined") {
+                re = new RegExp('^(?:' + pattern + ')$');
+                if (!re.test(value)) {
+                    errMsg = {
+                        field: elementId,
+                        message: "Incorrect value for the 1st sensor"
+                    };
+                    patternOk = false;
+                }
+            }
+
+            if (patternOk) {
+                if ((valMin !== null && valMin !== "undefined") && parseFloat(value) < parseFloat(valMin)) {
+                    errMsg = {
+                        field: elementId,
+                        message: "The 1st sensor temperature is below the minimum."
+                    };
+                }
+                if ((valMax !== null && valMax !== "undefined") && parseFloat(value) > parseFloat(valMax)) {
+                    errMsg = {
+                        field: elementId,
+                        message: "The 1st sensor temperature is above the maximum."
+                    };
+                }
+            }
         }
-
-        return queryStringObj;
+        if (errMsg !== undefined) {
+            return errMsg;
+        }
     };
 
 
     var checkRelevesForm = function () {
-        var errors = [];
-        var required = false,
-            pattern, patternOk = true,
-            re;
-        var value, valMin, valMax;
+        var errors = [],
+            errMsg;
 
         // Check Id
-        var releveId = parseInt($(relevesEditorIdSel).val());
-
-        // Check date
-        value = $(relevesEditorDateSel).val().trim();
-        required = $(relevesEditorDateSel).prop("required");
-        pattern = $(relevesEditorDateSel).prop("pattern");
-        if (required && (value == "" || value == null)) {
+        var releveId = parseInt($(relevesEditorIdSel).val(), 10);
+        if (releveId === undefined) {
             errMsg = {
-                field: "date",
-                message: "The date is mandatory."
+                field: "id",
+                message: "Incorrect value for the Id."
             };
             errors.push(errMsg);
-        } else {
-            if (pattern != null && pattern != "undefined") {
-                re = new RegExp('^(?:' + pattern + ')$')
-                if (!re.test(value)) {
-                    errMsg = {
-                        field: "date",
-                        message: "Invalid date."
-                    };
-                    errors.push(errMsg);
-                }
-            }
         }
 
-        value = $(relevesEditorSensor1Sel).val().trim();
-        required = $(relevesEditorSensor1Sel).prop("required");
-        pattern = $(relevesEditorSensor1Sel).prop("pattern");
-        patternOk = true;
-        valMin = $(relevesEditorSensor1Sel).prop("min");
-        valMax = $(relevesEditorSensor1Sel).prop("max");
-        if (value == null || value == "") {
-            if (required) {
-                errMsg = {
-                    field: "sensor1",
-                    message: "The 1st sensor temperature is mandatory."
-                };
-                errors.push(errMsg);
-            }
-        } else {
-            if (pattern != null && pattern != "undefined") {
-                re = new RegExp('^(?:' + pattern + ')$')
-                if (!re.test(value)) {
-                    errMsg = {
-                        field: "sensor1",
-                        message: "Incorrect value for the 1st sensor"
-                    };
-                    errors.push(errMsg);
-                    patternOk = false;
-                }
-            }
-
-            if (patternOk) {
-                if ((valMin != null && valMin != "undefined") && parseFloat(value) < parseFloat(valMin)) {
-                    errMsg = {
-                        field: "sensor1",
-                        message: "The 1st sensor temperature is below the minimum."
-                    };
-                    errors.push(errMsg);
-                }
-                if ((valMax != null && valMax != "undefined") && parseFloat(value) > parseFloat(valMax)) {
-                    errMsg = {
-                        field: "sensor1",
-                        message: "The 1st sensor temperature is above the maximum."
-                    };
-                    errors.push(errMsg);
-                }
-            }
+        // Check date
+        errMsg = checkFormElement($(relevesEditorDateSel));
+        if (typeof errMsg !== 'undefined') {
+            errors.push(errMsg);
         }
-
-        value = $(relevesEditorSensor2Sel).val().trim();
-        required = $(relevesEditorSensor2Sel).prop("required");
-        pattern = $(relevesEditorSensor2Sel).prop("pattern");
-        patternOk = true;
-        valMin = $(relevesEditorSensor2Sel).prop("min");
-        valMax = $(relevesEditorSensor2Sel).prop("max");
-        if (value == null || value == "") {
-            if (required) {
-                errMsg = {
-                    field: "sensor2",
-                    message: "The 2nd sensor temperature is mandatory."
-                };
-                errors.push(errMsg);
-            }
-        } else {
-            if (pattern != null && pattern != "undefined") {
-                re = new RegExp('^(?:' + pattern + ')$')
-                if (!re.test(value)) {
-                    errMsg = {
-                        field: "sensor2",
-                        message: "Incorrect value for the 2nd sensor."
-                    };
-                    errors.push(errMsg);
-                    patternOk = false;
-                }
-            }
-
-            if (patternOk) {
-                if ((valMin != null && valMin != "undefined") && parseFloat(value) < parseFloat(valMin)) {
-                    errMsg = {
-                        field: "sensor2",
-                        message: "The 2nd sensor temperature is below the minimum."
-                    };
-                    errors.push(errMsg);
-                }
-                if ((valMax != null && valMax != "undefined") && parseFloat(value) > parseFloat(valMax)) {
-                    errMsg = {
-                        field: "sensor2",
-                        message: "The 2nd sensor temperature is above the maximum."
-                    };
-                    errors.push(errMsg);
-                }
-            }
+        errMsg = checkFormElement($(relevesEditorSensor1Sel));
+        if (typeof errMsg !== 'undefined') {
+            errors.push(errMsg);
         }
-
-        value = $(relevesEditorSensor3Sel).val().trim();
-        required = $(relevesEditorSensor3Sel).prop("required");
-        pattern = $(relevesEditorSensor3Sel).prop("pattern");
-        patternOk = true;
-        valMin = $(relevesEditorSensor3Sel).prop("min");
-        valMax = $(relevesEditorSensor3Sel).prop("max");
-        if (value == null || value == "") {
-            if (required) {
-                errMsg = {
-                    field: "sensor3",
-                    message: "The 3rd sensor temperature is mandatory."
-                };
-                errors.push(errMsg);
-            }
-        } else {
-            if (pattern != null && pattern != "undefined") {
-                re = new RegExp('^(?:' + pattern + ')$')
-                if (!re.test(value)) {
-                    errMsg = {
-                        field: "sensor3",
-                        message: "Invalid value for the 3rd sensor."
-                    };
-                    errors.push(errMsg);
-                    patternOk = false;
-                }
-            }
-
-            if (patternOk) {
-                if ((valMin != null && valMin != "undefined") && parseFloat(value) < parseFloat(valMin)) {
-                    errMsg = {
-                        field: "sensor3",
-                        message: "The 3rd sensor temperature is below the minimum."
-                    };
-                    errors.push(errMsg);
-                }
-                if ((valMax != null && valMax != "undefined") && parseFloat(value) > parseFloat(valMax)) {
-                    errMsg = {
-                        field: "sensor3",
-                        message: "The 3rd sensor temperature is above the maximum."
-                    };
-                    errors.push(errMsg);
-                }
-            }
+        errMsg = checkFormElement($(relevesEditorSensor2Sel));
+        if (typeof errMsg !== 'undefined') {
+            errors.push(errMsg);
         }
-
-        value = $(relevesEditorElecSel).val().trim();
-        required = $(relevesEditorElecSel).prop("required");
-        pattern = $(relevesEditorElecSel).prop("pattern");
-        patternOk = true;
-        valMin = $(relevesEditorElecSel).prop("min");
-        valMax = $(relevesEditorElecSel).prop("max");
-        if (value == null || value == "") {
-            if (required) {
-                errMsg = {
-                    field: "elec",
-                    message: "The electricity index is mandatory."
-                };
-                errors.push(errMsg);
-            }
-        } else {
-            if (pattern != null && pattern != "undefined") {
-                re = new RegExp('^(?:' + pattern + ')$')
-                if (!re.test(value)) {
-                    errMsg = {
-                        field: "elec",
-                        message: "Invalid value for the electricity index."
-                    };
-                    errors.push(errMsg);
-                    patternOk = false;
-                }
-            }
-
-            if (patternOk) {
-                if ((valMin != null && valMin != "undefined") && parseFloat(value) < parseFloat(valMin)) {
-                    errMsg = {
-                        field: "elec",
-                        message: "Electricity index is below the minimum."
-                    };
-                    errors.push(errMsg);
-                }
-                if ((valMax != null && valMax != "undefined") && parseFloat(value) > parseFloat(valMax)) {
-                    errMsg = {
-                        field: "elec",
-                        message: "Electricity index is above the minimum."
-                    };
-                    errors.push(errMsg);
-                }
-            }
+        errMsg = checkFormElement($(relevesEditorSensor3Sel));
+        if (typeof errMsg !== 'undefined') {
+            errors.push(errMsg);
+        }
+        errMsg = checkFormElement($(relevesEditorElecSel));
+        if (typeof errMsg !== 'undefined') {
+            errors.push(errMsg);
         }
 
         return errors;
@@ -546,7 +419,7 @@ Releves.controller = (function ($, dataContext, document) {
             renderRelevesList();
             break;
         case relevesEditorPageId:
-            if (fromPageId == relevesListPageId) {
+            if (fromPageId === relevesListPageId) {
                 renderSelectedReleve(data);
             }
             break;
@@ -554,7 +427,7 @@ Releves.controller = (function ($, dataContext, document) {
             renderChart();
             break;
         }
-    }
+    };
 
 
     var onPageBeforeChange = function (event, data) {
@@ -571,26 +444,29 @@ Releves.controller = (function ($, dataContext, document) {
 
 
     var onSaveReleveBtnTapped = function (event, data) {
-        var fieldSel = "";
+        var key = "",
+            field = "",
+            label = "";
         event.stopPropagation();
         event.stopImmediatePropagation();
         // Remove previous error classes and messages
         $(releveInvalidDialogSel + " #releve-errors").empty();
-        for (var key in currentReleve) {
-            field = $("#releve-editor-" + key);
-            label = $("label[for='releves-editor-" + key + "']");
-            if (label.hasClass("error")) {
-                label.removeClass("error");
-            }
-            if (field.hasClass("error")) {
-                field.removeClass("error");
+        for (key in currentReleve) {
+            if (currentReleve.hasOwnProperty(key)) {
+                field = $("#releve-editor-" + key);
+                label = $("label[for='releves-editor-" + key + "']");
+                if (label.hasClass("error")) {
+                    label.removeClass("error");
+                }
+                if (field.hasClass("error")) {
+                    field.removeClass("error");
+                }
             }
         }
 
-        var hasErrors = false;
         var errors = checkRelevesForm();
 
-        if (errors.length == 0) {
+        if (errors.length === 0) {
             currentReleve.id = $(relevesEditorIdSel).val();
             currentReleve.date = $(relevesEditorDateSel).val();
             currentReleve.sensor1 = $(relevesEditorSensor1Sel).val();
@@ -600,33 +476,32 @@ Releves.controller = (function ($, dataContext, document) {
             currentReleve.appoint = $(relevesEditorAppointSel).val();
 
             errors = currentReleve.isValid();
-        }
 
-        if (errors.length == 0) {
-            // Indicator that the releve is not save to the server
-            currentReleve.dirty = 1;
+            if (errors.length === 0) {
 
-            // No errors
-            if (isOnLine()) {
-                // save Releve on the server
-                saveReleveToServer(currentReleve);
+                // Indicator that the releve is not save to the server
+                currentReleve.dirty = 1;
+
+                // No errors
+                if (isOnLine()) {
+                    // save Releve on the server
+                    saveReleveToServer(currentReleve);
+                }
+                // Save to localStorage
+                dataContext.saveReleve(currentReleve);
+
+                returnToRelevesListPage();
             }
-            // Save to localStorage
-            dataContext.saveReleve(currentReleve);
-
-            returnToRelevesListPage();
         }
 
-        if (errors.length != 0) {
+        if (errors.length !== 0) {
             // Show the errors
-            var label;
-            for (var i = 0; i < errors.length; i++) {
-                errMsg = errors[i];
-                $("#releves-editor-" + errMsg.field).addClass("error");
-                label = $("label[for='releves-editor-" + errMsg.field + "']");
+            $.each(errors, function (i, errMsg) {
+                $(errMsg.field).addClass("error");
+                label = $("label[for='" + errMsg.field + "']");
                 label.addClass("error");
                 $(releveInvalidDialogSel + " #releve-errors").append("<p>" + errMsg.message + "</p>");
-            }
+            });
             $.mobile.changePage(releveInvalidDialogSel, defaultDialogTrsn);
         }
     };
@@ -651,9 +526,10 @@ Releves.controller = (function ($, dataContext, document) {
         synchronizeReleves: synchronizeReleves,
         init: init
     };
-})(jQuery, Releves.dataContext, document);
+}(jQuery, Releves.dataContext, document));
 
 
 $(document).bind("mobileinit", function () {
+    "use strict";
     Releves.controller.init();
 });

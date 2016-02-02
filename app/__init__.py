@@ -44,6 +44,3 @@ if not app.debug:
     file_handler.setLevel(logging.WARNING)
     app.logger.addHandler(file_handler)
     app.logger.info('releves startup...')
-
-from app import routes
-
