@@ -11,7 +11,7 @@
 """
 
 from flask import Flask
-from flask.ext.mail import Mail
+from flask_mail import Mail
 from config import MAIL_SERVER, MAIL_PORT, MAIL_USERNAME, MAIL_PASSWORD, ADMINS
 
 app = Flask(__name__)
@@ -44,3 +44,5 @@ if not app.debug:
     file_handler.setLevel(logging.WARNING)
     app.logger.addHandler(file_handler)
     app.logger.info('releves startup...')
+
+from app import models, routes
