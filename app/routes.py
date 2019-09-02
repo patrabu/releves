@@ -100,7 +100,7 @@ def save():
     """
     Save e releve into the database.
     """
-    # app.logger.debug("save() - Begin.")
+    app.logger.debug("save() - Begin.")
     errors = []
     db = get_db()
 
