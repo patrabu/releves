@@ -42,7 +42,7 @@ def close_db_connection(exception):
         top.sqlite_db.close()
 
 
-@app.route("/api/getTS")
+@app.route("/api/v1/health")
 def getTS():
     """
     Method to check if the server is onLine
@@ -50,7 +50,7 @@ def getTS():
     return jsonify(content="OK")
 
 
-@app.route("/api/get30DaysReleves")
+@app.route("/api/v1/releves", methods=["GET"])
 def get30DaysReleves():
     """
     Retrieve the last 30 releves from now of from a date param
@@ -97,10 +97,10 @@ def get30DaysReleves():
     return jsonify(dict(RelevesList=listLog))
 
 
-@app.route('/api/saveReleve', methods=['POST'])
+@app.route('/api/v1/releves/', methods=['POST'])
 def save():
     """
-    Save e releve into the database.
+    Save a releve into the database.
     """
     # app.logger.debug("save() - Begin.")
     errors = []

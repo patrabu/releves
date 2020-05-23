@@ -11,7 +11,5 @@
     :license: GPL-3, see LICENSE for more details.
 """
 
-from flask import Flask
-
 from app import app
-app.run(host='192.168.0.100', port=5000, debug=True)
+app.run(host='0.0.0.0', port=5000, debug=True)

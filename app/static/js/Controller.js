@@ -63,7 +63,7 @@ Releves.controller = (function ($, dataContext, document) {
         dataString += "&s1=" + releve.sensor1 + "&s2=" + releve.sensor2 + "&s3=" + releve.sensor3 ;
         dataString += "&elec=" + releve.elec + "&app=" + releve.appoint;
         $.ajax({
-            url: 'api/saveReleve',
+            url: 'api/v1/releves',
             type: 'POST',
             data: dataString,
             async: false,
@@ -495,7 +495,7 @@ Releves.controller = (function ($, dataContext, document) {
 
         var ret = false;
         var req = $.ajax({
-            url: "api/getTS",
+            url: "api/v1/health",
             async: false,
             timeout: 2000});
 
@@ -516,7 +516,7 @@ Releves.controller = (function ($, dataContext, document) {
     var loadRelevesListFromServer = function() {
         console.log("loadRelevesListFromServer() - Begin.");
         $.ajax({
-            url: '/api/get30DaysReleves',
+            url: 'api/v1/releves',
             dataType: 'json',
             async: false,
             timeout: 2000,
